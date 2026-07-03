@@ -81,3 +81,27 @@ dotnet build                                   # compilar todo
 dotnet test                                    # correr tests
 dotnet run --project src/Facturacion.Api       # levantar la API (Swagger en /swagger)
 ```
+
+## ⚠️ Restricción actual: SIN ACCESO AL AMBIENTE PILOTO DEL SIN
+
+Roberto aún NO tiene NIT ni credenciales SIAT (token delegado, CUIS). En trámite.
+Hasta nuevo aviso:
+
+- NO intentar conectarse a ningún endpoint real del SIN (ni piloto ni producción).
+- NO pedir credenciales SIAT ni bloquear tareas esperándolas.
+- TODO el desarrollo de la integración SIAT se hace contra MOCKS:
+  - Clientes SOAP: generarlos con dotnet-svcutil desde los WSDL públicos
+    (documentación técnica pública en siatinfo.impuestos.gob.bo), y probarlos
+    contra WireMock.Net simulando las respuestas del SIN.
+  - XmlFacturaBuilder: validar contra los XSD públicos de los documentos sector.
+  - CufCalculator: tests unitarios con ejemplos documentados del algoritmo
+    (módulo 11 + base 16 + código de control del CUFD).
+  - CredencialesService (CUIS/CUFD): implementar la lógica completa, probada
+    contra mocks; dejar los endpoints reales configurables en SiatOptions
+    (Piloto/Produccion) vía appsettings, SIN valores reales.
+- Crear un `SiatFakeAdapter : IProveedorFiscal` para desarrollo local end-to-end:
+  simula validación exitosa/rechazo/contingencia de forma configurable, para
+  poder probar el flujo completo (API → cola → worker → webhook) sin el SIN.
+- Cuando llegue el NIT y el acceso al piloto, el cambio debe ser SOLO de
+  configuración (credenciales + URLs en appsettings/variables de entorno),
+  cero cambios de código. Diseñar con eso en mente.
