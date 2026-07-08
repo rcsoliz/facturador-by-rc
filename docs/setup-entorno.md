@@ -41,12 +41,16 @@ docker compose version
 ### Uso en este proyecto
 
 ```bash
-docker compose up -d      # levanta PostgreSQL local en localhost:5432
+docker compose up -d      # levanta PostgreSQL local en localhost:5433
 docker compose down       # lo apaga (los datos persisten en el volumen)
 ```
 
-Connection string de desarrollo por variable de entorno `DATABASE_URL`.
-Para inspeccionar la base: pgAdmin o DBeaver conectados a `localhost:5432`.
+Puerto 5433 (no 5432) porque el 5432 ya lo ocupa otro proyecto (`sad_ganadero`)
+corriendo en la misma máquina.
+
+Connection string de desarrollo por variable de entorno `DATABASE_URL`
+(fallback en `appsettings.Development.json` → `ConnectionStrings:Default`).
+Para inspeccionar la base: pgAdmin o DBeaver conectados a `localhost:5433`.
 
 ## Claude Code en Windows — nota de terminal
 
@@ -63,10 +67,12 @@ porque mintty no provee TTY a ejecutables nativos → Claude Code cae en modo
   (ConPTY, sin winpty): Settings → Add new profile →
   `C:\Program Files\Git\bin\bash.exe -i -l`
 
-## Estado del entorno (2026-07-07)
+## Estado del entorno (2026-07-08)
 
 - [x] Solución .NET 8 compilando, 5/5 tests en verde
 - [x] Repo público: https://github.com/rcsoliz/facturador-by-rc
 - [x] CLAUDE.md con restricción NIT/mocks commiteada
-- [ ] Docker Desktop instalado y verificado
-- [ ] Tarea de persistencia EF Core + Npgsql lanzada en Claude Code
+- [x] Docker Desktop instalado y verificado
+- [x] Persistencia EF Core + Npgsql: DbContext, configuraciones, migración inicial,
+      correlativo atómico por punto de venta, 8/8 tests en verde (incluye
+      integración real contra Postgres vía Testcontainers)

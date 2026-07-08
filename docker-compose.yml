@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: facturacion-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: facturacion
+      POSTGRES_PASSWORD: facturacion
+      POSTGRES_DB: facturacion
+    ports:
+      - "5433:5432"
+    volumes:
+      - facturacion-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  facturacion-postgres-data:

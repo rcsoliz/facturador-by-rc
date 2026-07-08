@@ -42,7 +42,7 @@ Solo consumen REST: emitir → 202 → webhook con el resultado (o polling).
 - [x] Esqueleto de solución + Domain + máquina de estados + puertos
 - [x] Contrato REST público (emitir/consultar/anular/pdf)
 - [ ] Middleware de autenticación por `X-Api-Key` → resuelve tenant (quitar `TenantDev`)
-- [ ] EF Core + Npgsql: DbContext, configuraciones, migraciones, secuencia de correlativos
+- [x] EF Core + Npgsql: DbContext, configuraciones, migraciones, secuencia de correlativos
       por punto de venta (¡atómica! usar secuencias de Postgres, no MAX+1)
 - [ ] Clientes SOAP del SIN (ambiente piloto) con dotnet-svcutil
 - [ ] Siat/Common: CufCalculator (módulo 11 + base 16), XmlFacturaBuilder + validación XSD,
