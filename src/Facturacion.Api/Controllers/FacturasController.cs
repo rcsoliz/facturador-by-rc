@@ -1,3 +1,4 @@
+using Facturacion.Api.Autenticacion;
 using Facturacion.Application.Commands.AnularFactura;
 using Facturacion.Application.Commands.EmitirFactura;
 using Facturacion.Application.Dtos;
@@ -8,15 +9,15 @@ namespace Facturacion.Api.Controllers;
 
 /// <summary>
 /// Contrato REST público — lo único que ven los sistemas cliente.
-/// Autenticación: header X-Api-Key (TODO claude-code: middleware que resuelve
-/// el tenant desde el hash de la API key; por ahora tenant fijo de desarrollo).
+/// Autenticación: header X-Api-Key, resuelto a tenant por <see cref="ApiKeyAuthMiddleware"/>.
 /// </summary>
 [ApiController]
 [Route("api/v1/facturas")]
 public class FacturasController : ControllerBase
 {
-    // TODO(claude-code): reemplazar por resolución de tenant vía middleware de API key.
-    private static readonly Guid TenantDev = Guid.Parse("00000000-0000-0000-0000-000000000001");
+    private readonly ICurrentTenant _tenant;
+
+    public FacturasController(ICurrentTenant tenant) => _tenant = tenant;
 
     /// <summary>
     /// Emite una factura. Respuesta 202: la emisión es asíncrona; el resultado
@@ -31,7 +32,7 @@ public class FacturasController : ControllerBase
         [FromServices] EmitirFacturaHandler handler,
         CancellationToken ct)
     {
-        var respuesta = await handler.HandleAsync(TenantDev, request, ct);
+        var respuesta = await handler.HandleAsync(_tenant.TenantId, request, ct);
         return AcceptedAtAction(nameof(Consultar), new { id = respuesta.Id }, respuesta);
     }
 
@@ -44,7 +45,7 @@ public class FacturasController : ControllerBase
         [FromServices] ConsultarFacturaHandler handler,
         CancellationToken ct)
     {
-        var respuesta = await handler.HandleAsync(TenantDev, id, ct);
+        var respuesta = await handler.HandleAsync(_tenant.TenantId, id, ct);
         return respuesta is null ? NotFound() : Ok(respuesta);
     }
 
@@ -58,7 +59,7 @@ public class FacturasController : ControllerBase
         [FromServices] AnularFacturaHandler handler,
         CancellationToken ct)
     {
-        var respuesta = await handler.HandleAsync(TenantDev, id, request.CodigoMotivo, ct);
+        var respuesta = await handler.HandleAsync(_tenant.TenantId, id, request.CodigoMotivo, ct);
         return respuesta is null ? NotFound() : Accepted(respuesta);
     }
 
