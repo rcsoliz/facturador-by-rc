@@ -7,15 +7,12 @@ using Facturacion.Domain.Ports;
 using Facturacion.Infrastructure.Colas;
 using Facturacion.Infrastructure.Persistence;
 using Facturacion.Infrastructure.Siat.Common;
+using Facturacion.Infrastructure.Siat.Fake;
+using Facturacion.Infrastructure.Webhooks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// ProcesarEmisionHandler (worker) depende de IProveedorFiscal/INotificadorWebhook,
-// que todavía no tienen implementación (otros ítems del roadmap). Sin esto, el host
-// no arranca en Development: valida el árbol de DI completo al hacer Build().
-builder.Host.UseDefaultServiceProvider(options => options.ValidateOnBuild = false);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -72,9 +69,15 @@ builder.Services.AddScoped<ITenantRepository, EfTenantRepository>();
 
 // ── Adaptadores (Infrastructure) ────────────────────────────────────────────
 // TODO(claude-code): selección de IProveedorFiscal por ModalidadFacturacion del
-// tenant (factory); Hangfire como IEncoladorEmision.
-builder.Services.AddSingleton<IEncoladorEmision, EncoladorEmisionInmediato>();
+// tenant (factory, cuando exista SiatComputarizadaAdapter real); Hangfire como
+// IEncoladorEmision. Por ahora todo corre contra mocks (ver restricción "SIN
+// ACCESO AL AMBIENTE PILOTO DEL SIN" en CLAUDE.md).
+builder.Services.AddScoped<IEncoladorEmision, EncoladorEmisionInmediato>();
+builder.Services.AddScoped<IProveedorFiscal, SiatFakeAdapter>();
+builder.Services.AddScoped<INotificadorWebhook, NotificadorWebhookLog>();
 builder.Services.Configure<SiatOptions>(builder.Configuration.GetSection(SiatOptions.SeccionConfiguracion));
+builder.Services.Configure<SiatFakeAdapterOptions>(
+    builder.Configuration.GetSection(SiatFakeAdapterOptions.SeccionConfiguracion));
 
 var app = builder.Build();
 

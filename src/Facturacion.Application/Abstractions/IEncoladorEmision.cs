@@ -6,6 +6,6 @@ namespace Facturacion.Application.Commands.EmitirFactura;
 /// </summary>
 public interface IEncoladorEmision
 {
-    Task EncolarEmisionAsync(Guid facturaId, CancellationToken ct = default);
-    Task EncolarAnulacionAsync(Guid facturaId, int codigoMotivo, CancellationToken ct = default);
+    Task EncolarEmisionAsync(Guid tenantId, Guid facturaId, CancellationToken ct = default);
+    Task EncolarAnulacionAsync(Guid tenantId, Guid facturaId, int codigoMotivo, CancellationToken ct = default);
 }

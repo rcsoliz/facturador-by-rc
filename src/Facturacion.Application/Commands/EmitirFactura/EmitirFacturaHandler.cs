@@ -46,7 +46,7 @@ public class EmitirFacturaHandler
         await _facturas.AgregarAsync(factura, ct);
         await _facturas.GuardarCambiosAsync(ct);
 
-        await _encolador.EncolarEmisionAsync(factura.Id, ct);
+        await _encolador.EncolarEmisionAsync(tenantId, factura.Id, ct);
 
         return FacturaResponse.Desde(factura);
     }

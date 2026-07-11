@@ -30,6 +30,14 @@
 - [x] `SiatOptions.cs` — v1: solo `LeyendaFacturaDefault` y `UsuarioSistema` (lo que
       `XmlFacturaBuilder` necesita hoy). Endpoints piloto/producción, timeouts y
       políticas Polly se agregan cuando se implementen los clientes SOAP.
+- [x] `FacturaXmlDatosFactory.cs` — arma `FacturaXmlDatos` combinando `Factura` +
+      `Tenant` + `Sucursal` + `PuntoVenta` + CUF/CUFD + `SiatOptions`. Compartido
+      entre `Siat/Fake/SiatFakeAdapter` (ya lo usa) y el futuro
+      `SiatComputarizadaAdapter`, para no duplicar este mapeo.
+
+Ver también `Siat/Fake/README.md`: `SiatFakeAdapter`, la implementación de
+`IProveedorFiscal` para desarrollo local (sin el SIN) que ya ejercita todo lo de
+arriba end-to-end — ver `SiatFakeAdapterTests` y `EmisionEndToEndTests`.
 
 Pendientes (TODO claude-code):
 

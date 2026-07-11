@@ -22,7 +22,7 @@ public class AnularFacturaHandler
         if (factura is null) return null;
 
         // La anulación real contra el SIN la hace el worker; acá solo encolamos.
-        await _encolador.EncolarAnulacionAsync(facturaId, codigoMotivo, ct);
+        await _encolador.EncolarAnulacionAsync(tenantId, facturaId, codigoMotivo, ct);
         return FacturaResponse.Desde(factura);
     }
 }
