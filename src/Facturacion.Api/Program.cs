@@ -6,6 +6,7 @@ using Facturacion.Application.Queries;
 using Facturacion.Domain.Ports;
 using Facturacion.Infrastructure.Colas;
 using Facturacion.Infrastructure.Persistence;
+using Facturacion.Infrastructure.Siat.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
@@ -73,6 +74,7 @@ builder.Services.AddScoped<ITenantRepository, EfTenantRepository>();
 // TODO(claude-code): selección de IProveedorFiscal por ModalidadFacturacion del
 // tenant (factory); Hangfire como IEncoladorEmision.
 builder.Services.AddSingleton<IEncoladorEmision, EncoladorEmisionInmediato>();
+builder.Services.Configure<SiatOptions>(builder.Configuration.GetSection(SiatOptions.SeccionConfiguracion));
 
 var app = builder.Build();
 

@@ -4,11 +4,10 @@ namespace Facturacion.Infrastructure.Siat.Common;
 /// Datos de entrada para <see cref="XmlFacturaBuilder"/>: un campo por cada elemento
 /// del XSD oficial del SIN para factura de compra-venta computarizada
 /// (<c>facturaComputarizadaCompraVenta.xsd</c>). No se lee directamente de
-/// <see cref="Facturacion.Domain.Entities.Factura"/> porque varios campos que el SIN
-/// exige (código de cliente, método de pago, actividad económica, leyenda, usuario)
-/// todavía no tienen fuente en el dominio ni en el contrato REST — quien arme este
-/// record (futuro <c>SiatComputarizadaAdapter</c>) debe resolverlos explícitamente,
-/// igual que ya se hace con <see cref="CufDatos"/> para el CUF.
+/// <see cref="Facturacion.Domain.Entities.Factura"/>: el futuro <c>SiatComputarizadaAdapter</c>
+/// lo arma combinando <c>Factura</c> (incl. <c>CodigoMetodoPago</c>/<c>NumeroTarjeta</c>),
+/// <c>Sucursal.ActividadEconomica</c> y <see cref="SiatOptions"/> (leyenda/usuario) —
+/// igual que ya se hace con <see cref="CufDatos"/> para el CUF, ver Siat/Common/README.md.
 /// Los campos nullable son los <c>nillable="true"</c> del XSD: si son null se emite
 /// <c>xsi:nil="true"</c>; si no, el valor.
 /// </summary>

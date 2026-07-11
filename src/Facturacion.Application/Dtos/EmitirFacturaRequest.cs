@@ -12,6 +12,8 @@ public sealed record EmitirFacturaRequest(
     CompradorDto Comprador,
     int CodigoMoneda,
     decimal TipoCambio,
+    int CodigoMetodoPago,              // paramétrica SIAT: 1=Efectivo, etc.
+    long? NumeroTarjeta,                // solo si el método de pago lo requiere
     IReadOnlyList<DetalleDto> Detalles);
 
 public sealed record CompradorDto(

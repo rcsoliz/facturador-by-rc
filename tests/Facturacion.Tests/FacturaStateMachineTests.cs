@@ -14,6 +14,7 @@ public class FacturaStateMachineTests
         razonSocialComprador: "Cliente Prueba", codigoTipoDocumentoIdentidad: 1,
         numeroDocumentoComprador: "1234567", complemento: null, emailComprador: null,
         codigoMoneda: 1, tipoCambio: 1,
+        codigoMetodoPago: 1, numeroTarjeta: null,
         detalles: new[] { new DetalleFactura(99100, "P-1", "Servicio de prueba", 1, 58, 100m) });
 
     [Fact]
@@ -61,7 +62,7 @@ public class FacturaStateMachineTests
     {
         var f = new Factura(
             Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 1, "REF-002",
-            "Cliente", 1, "111", null, null, 1, 1,
+            "Cliente", 1, "111", null, null, 1, 1, 1, null,
             new[]
             {
                 new DetalleFactura(99100, "A", "Item A", 2, 58, 50m),      // 100
@@ -72,11 +73,21 @@ public class FacturaStateMachineTests
     }
 
     [Fact]
+    public void CodigoMetodoPagoFueraDeRango_LanzaExcepcion()
+    {
+        var ex = Assert.Throws<DomainException>(() => new Factura(
+            Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 1, "REF-004",
+            "Cliente", 1, "111", null, null, 1, 1, 309, null,
+            new[] { new DetalleFactura(99100, "P-1", "Servicio", 1, 58, 10m) }));
+        Assert.Equal("METODO_PAGO_INVALIDO", ex.Codigo);
+    }
+
+    [Fact]
     public void FacturaSinDetalles_LanzaExcepcion()
     {
         var ex = Assert.Throws<DomainException>(() => new Factura(
             Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 1, "REF-003",
-            "Cliente", 1, "111", null, null, 1, 1,
+            "Cliente", 1, "111", null, null, 1, 1, 1, null,
             Array.Empty<DetalleFactura>()));
         Assert.Equal("FACTURA_SIN_DETALLE", ex.Codigo);
     }

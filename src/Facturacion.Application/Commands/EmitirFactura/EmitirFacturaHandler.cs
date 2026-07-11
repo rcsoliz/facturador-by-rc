@@ -40,6 +40,7 @@ public class EmitirFacturaHandler
             request.Comprador.RazonSocial, request.Comprador.CodigoTipoDocumentoIdentidad,
             request.Comprador.NumeroDocumento, request.Comprador.Complemento, request.Comprador.Email,
             request.CodigoMoneda, request.TipoCambio,
+            request.CodigoMetodoPago, request.NumeroTarjeta,
             detalles);
 
         await _facturas.AgregarAsync(factura, ct);

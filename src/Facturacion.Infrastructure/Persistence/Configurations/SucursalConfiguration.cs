@@ -11,6 +11,8 @@ public class SucursalConfiguration : IEntityTypeConfiguration<Sucursal>
         builder.ToTable("Sucursales");
         builder.HasKey(s => s.Id);
 
+        builder.Property(s => s.ActividadEconomica).HasMaxLength(10);
+
         builder.HasMany(s => s.PuntosVenta)
             .WithOne()
             .HasForeignKey(p => p.SucursalId)

@@ -14,14 +14,22 @@
       (documento sector 1) + validación contra el XSD oficial del SIN, embebido en
       `Xsd/facturaComputarizadaCompraVenta.xsd` (descargado de siatinfo.impuestos.gob.bo,
       paquete "Factura de Compra y Venta"). Recibe un `FacturaXmlDatos` explícito
-      (no lee `Factura` directamente) porque varios campos que el XSD exige —
-      `codigoCliente`, `codigoMetodoPago`, `numeroTarjeta`, `actividadEconomica`,
-      `leyenda`, `usuario` — todavía no tienen fuente en el dominio ni en el
-      contrato REST (`EmitirFacturaRequest`). Quien arme `SiatComputarizadaAdapter`
-      deberá resolver de dónde salen esos valores (¿nuevos campos en `Factura`?
-      ¿catálogo/config del tenant?) — decisión pendiente, no tomada todavía.
+      (no lee `Factura` directamente). Fuente de cada campo que el XSD exige y no
+      es un dato directo de `Factura` (decidido con Roberto):
+        - `codigoMetodoPago` / `numeroTarjeta` → `Factura.CodigoMetodoPago` /
+          `Factura.NumeroTarjeta` (nuevos campos de dominio, ver `EmitirFacturaRequest`).
+        - `actividadEconomica` (por ítem) → `Sucursal.ActividadEconomica`, un único
+          valor por sucursal repetido en todos los `detalle` de la factura (no hay
+          override por ítem en v1).
+        - `leyenda` / `usuario` → `SiatOptions.LeyendaFacturaDefault` /
+          `SiatOptions.UsuarioSistema` (config fija por instalación, no por tenant).
+        - `codigoCliente` → se resuelve en el adaptador como
+          `Factura.NumeroDocumentoComprador` (sin campo nuevo).
       Ver `XmlFacturaBuilderTests`: 7/7 en verde, incluyendo un caso que reproduce
       byte a byte los valores del ejemplo oficial del SIN y valida contra el XSD real.
+- [x] `SiatOptions.cs` — v1: solo `LeyendaFacturaDefault` y `UsuarioSistema` (lo que
+      `XmlFacturaBuilder` necesita hoy). Endpoints piloto/producción, timeouts y
+      políticas Polly se agregan cuando se implementen los clientes SOAP.
 
 Pendientes (TODO claude-code):
 
@@ -30,4 +38,3 @@ Pendientes (TODO claude-code):
   operaciones (eventos significativos, puntos de venta)
 - `CredencialesService.cs` — obtención/renovación de CUIS (anual) y CUFD (24h)
 - `CatalogosService.cs` — sincronización diaria de paramétricas
-- `SiatOptions.cs` — endpoints piloto/producción, timeouts, políticas Polly

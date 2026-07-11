@@ -37,9 +37,9 @@ public class Tenant : Entity
     public void ConfigurarWebhook(string url) { WebhookUrl = url; MarcarActualizado(); }
     public void Desactivar() { Activo = false; MarcarActualizado(); }
 
-    public Sucursal AgregarSucursal(int codigoSiat, string direccion, string municipio)
+    public Sucursal AgregarSucursal(int codigoSiat, string direccion, string municipio, string actividadEconomica)
     {
-        var sucursal = new Sucursal(Id, codigoSiat, direccion, municipio);
+        var sucursal = new Sucursal(Id, codigoSiat, direccion, municipio, actividadEconomica);
         _sucursales.Add(sucursal);
         MarcarActualizado();
         return sucursal;

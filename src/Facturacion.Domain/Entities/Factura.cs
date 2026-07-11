@@ -37,6 +37,12 @@ public class Factura : Entity
     public int CodigoMoneda { get; private set; }
     public decimal TipoCambio { get; private set; }
 
+    /// <summary>Código de método de pago según paramétrica SIAT (1..308).</summary>
+    public int CodigoMetodoPago { get; private set; }
+
+    /// <summary>Últimos dígitos de tarjeta, solo cuando el método de pago lo requiere.</summary>
+    public long? NumeroTarjeta { get; private set; }
+
     public DateTime FechaEmision { get; private set; }
 
     /// <summary>XML enviado al SIN (auditoría / reprocesos). En Postgres: columna text o jsonb envolvente.</summary>
@@ -62,10 +68,14 @@ public class Factura : Entity
         string razonSocialComprador, int codigoTipoDocumentoIdentidad,
         string numeroDocumentoComprador, string? complemento, string? emailComprador,
         int codigoMoneda, decimal tipoCambio,
+        int codigoMetodoPago, long? numeroTarjeta,
         IEnumerable<DetalleFactura> detalles)
     {
         if (!detalles.Any())
             throw new DomainException("FACTURA_SIN_DETALLE", "La factura debe tener al menos un ítem.");
+        if (codigoMetodoPago is < 1 or > 308)
+            throw new DomainException(
+                "METODO_PAGO_INVALIDO", "El código de método de pago debe estar entre 1 y 308.");
 
         TenantId = tenantId;
         SucursalId = sucursalId;
@@ -79,6 +89,8 @@ public class Factura : Entity
         EmailComprador = emailComprador;
         CodigoMoneda = codigoMoneda;
         TipoCambio = tipoCambio;
+        CodigoMetodoPago = codigoMetodoPago;
+        NumeroTarjeta = numeroTarjeta;
         FechaEmision = DateTime.UtcNow;
 
         _detalles.AddRange(detalles);

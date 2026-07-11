@@ -16,7 +16,7 @@ public class FacturaPersistenciaTests
     {
         var factura = new Factura(
             Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 1, $"REF-{Guid.NewGuid()}",
-            "Cliente Prueba", 1, "1234567", null, null, 1, 1,
+            "Cliente Prueba", 1, "1234567", null, null, 1, 1, 1, null,
             new[] { new DetalleFactura(99100, "P-1", "Servicio", 2, 58, 50m, 5m) });
 
         await using (var db = _fixture.NuevoContexto())
@@ -44,7 +44,7 @@ public class FacturaPersistenciaTests
 
         Factura NuevaFactura() => new(
             tenantId, Guid.NewGuid(), Guid.NewGuid(), 1, referencia,
-            "Cliente Prueba", 1, "1234567", null, null, 1, 1,
+            "Cliente Prueba", 1, "1234567", null, null, 1, 1, 1, null,
             new[] { new DetalleFactura(99100, "P-1", "Servicio", 1, 58, 10m) });
 
         await using (var db = _fixture.NuevoContexto())
