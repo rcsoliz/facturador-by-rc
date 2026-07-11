@@ -1,4 +1,6 @@
 using Facturacion.Api.Autenticacion;
+using Facturacion.Application.Commands.AgregarPuntoVenta;
+using Facturacion.Application.Commands.AgregarSucursal;
 using Facturacion.Application.Commands.AnularFactura;
 using Facturacion.Application.Commands.EmitirFactura;
 using Facturacion.Application.Commands.RegistrarTenant;
@@ -54,6 +56,8 @@ builder.Services.AddScoped<AnularFacturaHandler>();
 builder.Services.AddScoped<ConsultarFacturaHandler>();
 builder.Services.AddScoped<ProcesarEmisionHandler>();
 builder.Services.AddScoped<RegistrarTenantHandler>();
+builder.Services.AddScoped<AgregarSucursalHandler>();
+builder.Services.AddScoped<AgregarPuntoVentaHandler>();
 
 // ── Persistencia (EF Core + Npgsql) ─────────────────────────────────────────
 var connectionString =

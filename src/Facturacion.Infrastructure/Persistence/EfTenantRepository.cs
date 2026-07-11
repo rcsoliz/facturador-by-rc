@@ -23,5 +23,11 @@ public class EfTenantRepository : ITenantRepository
     public async Task AgregarAsync(Tenant tenant, CancellationToken ct = default) =>
         await _db.Tenants.AddAsync(tenant, ct);
 
+    public async Task AgregarSucursalAsync(Sucursal sucursal, CancellationToken ct = default) =>
+        await _db.Sucursales.AddAsync(sucursal, ct);
+
+    public async Task AgregarPuntoVentaAsync(PuntoVenta puntoVenta, CancellationToken ct = default) =>
+        await _db.PuntosVenta.AddAsync(puntoVenta, ct);
+
     public Task GuardarCambiosAsync(CancellationToken ct = default) => _db.SaveChangesAsync(ct);
 }

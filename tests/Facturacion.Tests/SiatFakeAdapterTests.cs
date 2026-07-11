@@ -94,6 +94,8 @@ public class SiatFakeAdapterTests
             Task.FromResult<Tenant?>(null);
 
         public Task AgregarAsync(Tenant tenant, CancellationToken ct = default) => Task.CompletedTask;
+        public Task AgregarSucursalAsync(Sucursal sucursal, CancellationToken ct = default) => Task.CompletedTask;
+        public Task AgregarPuntoVentaAsync(PuntoVenta puntoVenta, CancellationToken ct = default) => Task.CompletedTask;
         public Task GuardarCambiosAsync(CancellationToken ct = default) => Task.CompletedTask;
     }
 }
