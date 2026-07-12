@@ -3,6 +3,7 @@ using Facturacion.Application.Commands.AnularFactura;
 using Facturacion.Application.Commands.EmitirFactura;
 using Facturacion.Application.Dtos;
 using Facturacion.Application.Queries;
+using Facturacion.Domain.Common;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Facturacion.Api.Controllers;
@@ -63,15 +64,25 @@ public class FacturasController : ControllerBase
         return respuesta is null ? NotFound() : Accepted(respuesta);
     }
 
-    /// <summary>Descarga la representación gráfica (PDF con QR).</summary>
+    /// <summary>Descarga la representación gráfica (PDF con QR) de una factura validada.</summary>
     [HttpGet("{id:guid}/pdf")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public IActionResult DescargarPdf(Guid id)
+    public async Task<IActionResult> DescargarPdf(
+        Guid id,
+        [FromServices] ObtenerRepresentacionGraficaHandler handler,
+        CancellationToken ct)
     {
-        // TODO(claude-code): IGeneradorRepresentacionGrafica (QuestPDF + QRCoder).
-        return StatusCode(StatusCodes.Status501NotImplemented,
-            new { mensaje = "Representación gráfica disponible en próxima iteración." });
+        try
+        {
+            var pdf = await handler.HandleAsync(_tenant.TenantId, id, ct);
+            return pdf is null ? NotFound() : File(pdf, "application/pdf", $"factura-{id}.pdf");
+        }
+        catch (DomainException ex)
+        {
+            return BadRequest(new { codigo = ex.Codigo, mensaje = ex.Message });
+        }
     }
 }
 
