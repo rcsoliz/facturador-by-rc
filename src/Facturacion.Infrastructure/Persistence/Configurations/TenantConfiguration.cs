@@ -16,6 +16,8 @@ public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
 
         builder.HasIndex(t => t.ApiKeyHash).IsUnique();
 
+        builder.Property(t => t.WebhookUrl).HasMaxLength(2048);
+
         builder.HasMany(t => t.Sucursales)
             .WithOne()
             .HasForeignKey(s => s.TenantId)

@@ -63,7 +63,9 @@ public class EmisionEndToEndTests
             new ProteccionDatosAes(new ProteccionDatosOptions(ClaveMaestraPrueba)));
         var proveedor = new SiatFakeAdapter(
             tenants, credenciales, Options.Create(new SiatOptions()), Options.Create(new SiatFakeAdapterOptions()));
-        var webhook = new NotificadorWebhookLog(NullLogger<NotificadorWebhookLog>.Instance);
+        var webhook = new NotificadorWebhookHttp(
+            new HttpClientFactoryNuncaLlamado(), new ProteccionDatosAes(new ProteccionDatosOptions(ClaveMaestraPrueba)),
+            NullLogger<NotificadorWebhookHttp>.Instance);
         var procesarEmision = new ProcesarEmisionHandler(facturas, tenants, proveedor, webhook);
         var encolador = new EncoladorEmisionInmediato(procesarEmision);
 
@@ -113,5 +115,18 @@ public class EmisionEndToEndTests
         var facturaFinal = await db.Facturas.SingleAsync(f => f.Id == respuesta.Id);
         Assert.Equal(EstadoFactura.Rechazada, facturaFinal.Estado);
         Assert.NotNull(facturaFinal.MotivoRechazo);
+    }
+
+    /// <summary>
+    /// Los tenants sembrados acá nunca configuran webhook (WebhookUrl null),
+    /// así que NotificadorWebhookHttp debe omitir el envío sin tocar HTTP —
+    /// si algún día lo llamara, este fake lo hace fallar fuerte en vez de
+    /// intentar una conexión real durante el test.
+    /// </summary>
+    private sealed class HttpClientFactoryNuncaLlamado : IHttpClientFactory
+    {
+        public HttpClient CreateClient(string name) =>
+            throw new InvalidOperationException(
+                "No se esperaba una llamada HTTP: el tenant de prueba no tiene webhook configurado.");
     }
 }

@@ -21,6 +21,9 @@ public class Tenant : Entity
     /// <summary>URL a la que se notifican los cambios de estado de las facturas.</summary>
     public string? WebhookUrl { get; private set; }
 
+    /// <summary>Secreto para firmar (HMAC-SHA256) el payload del webhook, cifrado en reposo.</summary>
+    public string? WebhookSecretCifrado { get; private set; }
+
     private readonly List<Sucursal> _sucursales = new();
     public IReadOnlyCollection<Sucursal> Sucursales => _sucursales.AsReadOnly();
 
@@ -34,7 +37,13 @@ public class Tenant : Entity
         ApiKeyHash = apiKeyHash;
     }
 
-    public void ConfigurarWebhook(string url) { WebhookUrl = url; MarcarActualizado(); }
+    /// <summary>El secreto se recibe ya cifrado — el cifrado es responsabilidad del caller (ver <c>IProteccionDatos</c>).</summary>
+    public void ConfigurarWebhook(string url, string secretoCifrado)
+    {
+        WebhookUrl = url;
+        WebhookSecretCifrado = secretoCifrado;
+        MarcarActualizado();
+    }
     public void Desactivar() { Activo = false; MarcarActualizado(); }
 
     public Sucursal AgregarSucursal(int codigoSiat, string direccion, string municipio, string actividadEconomica)

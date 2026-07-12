@@ -2,6 +2,7 @@ using Facturacion.Api.Autenticacion;
 using Facturacion.Application.Commands.AgregarPuntoVenta;
 using Facturacion.Application.Commands.AgregarSucursal;
 using Facturacion.Application.Commands.AnularFactura;
+using Facturacion.Application.Commands.ConfigurarWebhook;
 using Facturacion.Application.Commands.EmitirFactura;
 using Facturacion.Application.Commands.RegistrarCredencialSiat;
 using Facturacion.Application.Commands.RegistrarTenant;
@@ -61,6 +62,7 @@ builder.Services.AddScoped<RegistrarTenantHandler>();
 builder.Services.AddScoped<AgregarSucursalHandler>();
 builder.Services.AddScoped<AgregarPuntoVentaHandler>();
 builder.Services.AddScoped<RegistrarCredencialSiatHandler>();
+builder.Services.AddScoped<ConfigurarWebhookHandler>();
 
 // ── Persistencia (EF Core + Npgsql) ─────────────────────────────────────────
 var connectionString =
@@ -98,10 +100,18 @@ builder.Services.AddScoped<IGestorCredencialesSiat>(sp => sp.GetRequiredService<
 builder.Services.AddScoped<ISinCatalogosClient, CatalogosClienteFake>();
 builder.Services.AddScoped<CatalogosService>();
 builder.Services.AddScoped<IProveedorFiscal, SiatFakeAdapter>();
-builder.Services.AddScoped<INotificadorWebhook, NotificadorWebhookLog>();
+builder.Services.AddScoped<INotificadorWebhook, NotificadorWebhookHttp>();
 builder.Services.Configure<SiatOptions>(builder.Configuration.GetSection(SiatOptions.SeccionConfiguracion));
 builder.Services.Configure<SiatFakeAdapterOptions>(
     builder.Configuration.GetSection(SiatFakeAdapterOptions.SeccionConfiguracion));
+
+// ── Webhooks (entrega HTTP firmada + reintentos/circuit breaker con Polly) ──
+builder.Services.AddHttpClient(NotificadorWebhookHttp.NombreCliente, cliente =>
+    {
+        cliente.Timeout = TimeSpan.FromSeconds(10);
+    })
+    .AddPolicyHandler(PoliticasWebhook.Reintentos())
+    .AddPolicyHandler(PoliticasWebhook.CircuitBreaker());
 
 var app = builder.Build();
 
