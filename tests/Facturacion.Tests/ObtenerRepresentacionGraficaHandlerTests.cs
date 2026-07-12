@@ -82,6 +82,9 @@ public class ObtenerRepresentacionGraficaHandlerTests
         public Task<IReadOnlyList<Factura>> ListarPorEstadoAsync(Guid tenantId, EstadoFactura estado, CancellationToken ct = default) =>
             throw new NotSupportedException();
 
+        public Task<IReadOnlyList<Factura>> ListarEnContingenciaAsync(CancellationToken ct = default) =>
+            throw new NotSupportedException();
+
         public Task<long> SiguienteNumeroAsync(Guid puntoVentaId, CancellationToken ct = default) =>
             throw new NotSupportedException();
 

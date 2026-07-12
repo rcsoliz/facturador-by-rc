@@ -14,5 +14,8 @@ public interface ICredencialSiatRepository
 
     Task AgregarAsync(CredencialSiat credencial, CancellationToken ct = default);
 
+    /// <summary>Todas las credenciales registradas, de cualquier tenant — uso interno del job de renovación de CUFD.</summary>
+    Task<IReadOnlyList<CredencialSiat>> ListarTodasAsync(CancellationToken ct = default);
+
     Task GuardarCambiosAsync(CancellationToken ct = default);
 }

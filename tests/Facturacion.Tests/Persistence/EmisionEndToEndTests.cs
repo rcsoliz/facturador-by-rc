@@ -67,9 +67,27 @@ public class EmisionEndToEndTests
             new HttpClientFactoryNuncaLlamado(), new ProteccionDatosAes(new ProteccionDatosOptions(ClaveMaestraPrueba)),
             NullLogger<NotificadorWebhookHttp>.Instance);
         var procesarEmision = new ProcesarEmisionHandler(facturas, tenants, proveedor, webhook);
-        var encolador = new EncoladorEmisionInmediato(procesarEmision);
+        var encolador = new EncoladorEmisionSincronoFake(procesarEmision);
 
         return new EmitirFacturaHandler(facturas, encolador);
+    }
+
+    /// <summary>
+    /// En producción <see cref="Facturacion.Infrastructure.Colas.EncoladorEmisionHangfire"/>
+    /// solo encola (fire-and-forget) — acá se necesita que el procesamiento
+    /// corra sincrónicamente para poder aserir el estado final justo después
+    /// de <c>handler.HandleAsync</c>, sin levantar un servidor Hangfire real.
+    /// </summary>
+    private sealed class EncoladorEmisionSincronoFake : IEncoladorEmision
+    {
+        private readonly ProcesarEmisionHandler _procesarEmision;
+        public EncoladorEmisionSincronoFake(ProcesarEmisionHandler procesarEmision) => _procesarEmision = procesarEmision;
+
+        public Task EncolarEmisionAsync(Guid tenantId, Guid facturaId, CancellationToken ct = default) =>
+            _procesarEmision.HandleAsync(tenantId, facturaId, ct);
+
+        public Task EncolarAnulacionAsync(Guid tenantId, Guid facturaId, int codigoMotivo, CancellationToken ct = default) =>
+            throw new NotSupportedException();
     }
 
     private static EmitirFacturaRequest ArmarRequest(

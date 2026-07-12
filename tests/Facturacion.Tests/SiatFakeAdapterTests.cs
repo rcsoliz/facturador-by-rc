@@ -123,6 +123,9 @@ public class SiatFakeAdapterTests
             return Task.CompletedTask;
         }
 
+        public Task<IReadOnlyList<CredencialSiat>> ListarTodasAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<CredencialSiat>>(_credencial is null ? Array.Empty<CredencialSiat>() : new[] { _credencial });
+
         public Task GuardarCambiosAsync(CancellationToken ct = default) => Task.CompletedTask;
     }
 

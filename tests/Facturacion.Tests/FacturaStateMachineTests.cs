@@ -58,6 +58,20 @@ public class FacturaStateMachineTests
     }
 
     [Fact]
+    public void Contingencia_PuedeMarcarseValidadaORechazadaAlEnviarElPaquete()
+    {
+        var validada = CrearFactura();
+        validada.MarcarEnContingencia();
+        validada.MarcarValidada("REC-1", "{}");
+        Assert.Equal(EstadoFactura.Validada, validada.Estado);
+
+        var rechazada = CrearFactura();
+        rechazada.MarcarEnContingencia();
+        rechazada.MarcarRechazada("Error 905", "{}");
+        Assert.Equal(EstadoFactura.Rechazada, rechazada.Estado);
+    }
+
+    [Fact]
     public void MontoTotal_SeCalculaDesdeDetalles()
     {
         var f = new Factura(

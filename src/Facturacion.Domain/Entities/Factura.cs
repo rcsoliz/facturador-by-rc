@@ -133,9 +133,11 @@ public class Factura : Entity
         MarcarActualizado();
     }
 
+    /// <summary>También aceptable desde EnContingencia: el paquete de contingencia puede rechazarse igual que un envío normal.</summary>
     public void MarcarRechazada(string motivo, string respuestaRaw)
     {
-        ValidarEstado(EstadoFactura.Enviada, "rechazar");
+        if (Estado is not (EstadoFactura.Enviada or EstadoFactura.EnContingencia))
+            throw TransicionInvalida("rechazar");
         MotivoRechazo = motivo;
         RespuestaSinRaw = respuestaRaw;
         Estado = EstadoFactura.Rechazada;

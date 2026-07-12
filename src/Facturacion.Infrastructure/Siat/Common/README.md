@@ -66,7 +66,17 @@
       `Sucursal.ActividadEconomica` / `DetalleFactura.CodigoProductoSin`
       contra el catálogo sincronizado (hoy pasan sin validar, ver
       `CatalogosServiceTests`). No expone puerto Domain todavía — no hay
-      ningún caller en Application/Workers aún (llegará con el job Hangfire).
+      ningún caller en Application aún. Se sincroniza vía job recurrente
+      diario de Hangfire (`RecurringJob.AddOrUpdate<CatalogosService>` en
+      `Program.cs`), registrado directo sin wrapper — ver `Colas/README.md`.
+
+- [x] `JobRenovacionCufd.cs` — job recurrente de Hangfire (cada 6h) que
+      renueva CUIS/CUFD de todas las credenciales registradas, iterando
+      `ICredencialSiatRepository.ListarTodasAsync()`. No reemplaza la
+      renovación lazy que sigue haciendo `CredencialesService` bajo demanda
+      en cada emisión — es una capa extra para no pagar esa latencia en el
+      camino caliente. Ver `Colas/README.md` para el resto de los jobs
+      (envío de paquetes de contingencia, cola de emisión real).
 
 Ver también `Siat/Fake/README.md`: `SiatFakeAdapter`, la implementación de
 `IProveedorFiscal` para desarrollo local (sin el SIN) que ya ejercita todo lo de
@@ -85,6 +95,3 @@ Pendientes (TODO claude-code):
   SIN" de CLAUDE.md. Cuando existan, solo hay que reemplazar el registro DI de
   `ISinCredencialesClient`/`ISinCatalogosClient` (hoy los fakes) por el
   cliente real — `CredencialesService`/`CatalogosService` no cambian.
-- Job Hangfire diario que invoque `CatalogosService.SincronizarAsync` +
-  renovación programada de CUFD (antes de que venza) — hoy
-  `CredencialesService` renueva bajo demanda (lazy) en cada emisión.

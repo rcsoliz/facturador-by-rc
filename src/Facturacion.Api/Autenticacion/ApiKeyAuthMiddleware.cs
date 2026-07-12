@@ -18,8 +18,12 @@ public class ApiKeyAuthMiddleware
     public async Task InvokeAsync(HttpContext context, ITenantRepository tenants, ICurrentTenant currentTenant)
     {
         // Los endpoints /api/v1/admin (onboarding) los protege AdminApiKeyMiddleware:
-        // no hay tenant todavía cuando se está dando de alta uno.
-        if (context.Request.Path.StartsWithSegments("/api/v1/admin"))
+        // no hay tenant todavía cuando se está dando de alta uno. El dashboard de
+        // Hangfire (/hangfire) tiene su propia autorización (ver Program.cs, hoy
+        // sin restricción real porque solo se expone en Development) — no es un
+        // endpoint de tenant, no tiene sentido exigirle X-Api-Key.
+        if (context.Request.Path.StartsWithSegments("/api/v1/admin") ||
+            context.Request.Path.StartsWithSegments("/hangfire"))
         {
             await _next(context);
             return;

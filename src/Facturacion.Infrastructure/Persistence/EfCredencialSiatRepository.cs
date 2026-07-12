@@ -18,5 +18,8 @@ public class EfCredencialSiatRepository : ICredencialSiatRepository
     public async Task AgregarAsync(CredencialSiat credencial, CancellationToken ct = default) =>
         await _db.CredencialesSiat.AddAsync(credencial, ct);
 
+    public async Task<IReadOnlyList<CredencialSiat>> ListarTodasAsync(CancellationToken ct = default) =>
+        await _db.CredencialesSiat.ToListAsync(ct);
+
     public Task GuardarCambiosAsync(CancellationToken ct = default) => _db.SaveChangesAsync(ct);
 }

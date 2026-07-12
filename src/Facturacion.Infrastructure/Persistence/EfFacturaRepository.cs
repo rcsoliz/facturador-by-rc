@@ -24,6 +24,11 @@ public class EfFacturaRepository : IFacturaRepository
             .Where(f => f.TenantId == tenantId && f.Estado == estado)
             .ToListAsync(ct);
 
+    public async Task<IReadOnlyList<Factura>> ListarEnContingenciaAsync(CancellationToken ct = default) =>
+        await _db.Facturas.Include(f => f.Detalles)
+            .Where(f => f.Estado == EstadoFactura.EnContingencia)
+            .ToListAsync(ct);
+
     /// <summary>
     /// Correlativo atómico por punto de venta: un único INSERT ... ON CONFLICT ... DO UPDATE
     /// ... RETURNING, resuelto por Postgres con el lock de fila de la PK. Se ejecuta y confirma
