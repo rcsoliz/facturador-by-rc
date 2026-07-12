@@ -10,5 +10,13 @@ public class CredencialSiatConfiguration : IEntityTypeConfiguration<CredencialSi
     {
         builder.ToTable("CredencialesSiat");
         builder.HasKey(c => c.Id);
+
+        builder.Property(c => c.TokenDelegadoCifrado).IsRequired();
+        builder.Property(c => c.Cuis).HasMaxLength(50);
+        builder.Property(c => c.Cufd).HasMaxLength(50);
+        builder.Property(c => c.CufdCodigoControl).HasMaxLength(50);
+
+        // Una credencial por punto de venta, o por sucursal cuando PuntoVentaId es null.
+        builder.HasIndex(c => new { c.TenantId, c.SucursalId, c.PuntoVentaId }).IsUnique();
     }
 }

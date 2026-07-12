@@ -3,11 +3,13 @@ using Facturacion.Application.Commands.AgregarPuntoVenta;
 using Facturacion.Application.Commands.AgregarSucursal;
 using Facturacion.Application.Commands.AnularFactura;
 using Facturacion.Application.Commands.EmitirFactura;
+using Facturacion.Application.Commands.RegistrarCredencialSiat;
 using Facturacion.Application.Commands.RegistrarTenant;
 using Facturacion.Application.Queries;
 using Facturacion.Domain.Ports;
 using Facturacion.Infrastructure.Colas;
 using Facturacion.Infrastructure.Persistence;
+using Facturacion.Infrastructure.Seguridad;
 using Facturacion.Infrastructure.Siat.Common;
 using Facturacion.Infrastructure.Siat.Fake;
 using Facturacion.Infrastructure.Webhooks;
@@ -58,6 +60,7 @@ builder.Services.AddScoped<ProcesarEmisionHandler>();
 builder.Services.AddScoped<RegistrarTenantHandler>();
 builder.Services.AddScoped<AgregarSucursalHandler>();
 builder.Services.AddScoped<AgregarPuntoVentaHandler>();
+builder.Services.AddScoped<RegistrarCredencialSiatHandler>();
 
 // ── Persistencia (EF Core + Npgsql) ─────────────────────────────────────────
 var connectionString =
@@ -70,6 +73,17 @@ builder.Services.AddDbContext<FacturacionDbContext>(options => options.UseNpgsql
 
 builder.Services.AddScoped<IFacturaRepository, EfFacturaRepository>();
 builder.Services.AddScoped<ITenantRepository, EfTenantRepository>();
+builder.Services.AddScoped<ICredencialSiatRepository, EfCredencialSiatRepository>();
+
+// ── Seguridad (cifrado en reposo) ───────────────────────────────────────────
+var claveMaestra =
+    Environment.GetEnvironmentVariable("CREDENCIALES_CLAVE_MAESTRA")
+    ?? builder.Configuration["Seguridad:ClaveMaestra"]
+    ?? throw new InvalidOperationException(
+        "No se configuró la clave maestra de cifrado (variable CREDENCIALES_CLAVE_MAESTRA o " +
+        "Seguridad:ClaveMaestra) — 32 bytes AES-256 en Base64.");
+builder.Services.AddSingleton(new ProteccionDatosOptions(claveMaestra));
+builder.Services.AddSingleton<IProteccionDatos, ProteccionDatosAes>();
 
 // ── Adaptadores (Infrastructure) ────────────────────────────────────────────
 // TODO(claude-code): selección de IProveedorFiscal por ModalidadFacturacion del
@@ -77,6 +91,9 @@ builder.Services.AddScoped<ITenantRepository, EfTenantRepository>();
 // IEncoladorEmision. Por ahora todo corre contra mocks (ver restricción "SIN
 // ACCESO AL AMBIENTE PILOTO DEL SIN" en CLAUDE.md).
 builder.Services.AddScoped<IEncoladorEmision, EncoladorEmisionInmediato>();
+builder.Services.AddScoped<ISinCredencialesClient, CredencialesClienteFake>();
+builder.Services.AddScoped<CredencialesService>();
+builder.Services.AddScoped<IGestorCredencialesSiat>(sp => sp.GetRequiredService<CredencialesService>());
 builder.Services.AddScoped<IProveedorFiscal, SiatFakeAdapter>();
 builder.Services.AddScoped<INotificadorWebhook, NotificadorWebhookLog>();
 builder.Services.Configure<SiatOptions>(builder.Configuration.GetSection(SiatOptions.SeccionConfiguracion));

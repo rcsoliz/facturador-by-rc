@@ -5,6 +5,7 @@ using Facturacion.Domain.Enums;
 using Facturacion.Domain.ValueObjects;
 using Facturacion.Infrastructure.Colas;
 using Facturacion.Infrastructure.Persistence;
+using Facturacion.Infrastructure.Seguridad;
 using Facturacion.Infrastructure.Siat.Common;
 using Facturacion.Infrastructure.Siat.Fake;
 using Facturacion.Infrastructure.Webhooks;
@@ -25,6 +26,9 @@ namespace Facturacion.Tests.Persistence;
 [Collection("Postgres")]
 public class EmisionEndToEndTests
 {
+    // AES-256 de prueba (32 bytes en Base64) — nunca usar en producción.
+    private const string ClaveMaestraPrueba = "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=";
+
     private readonly PostgresFixture _fixture;
 
     public EmisionEndToEndTests(PostgresFixture fixture) => _fixture = fixture;
@@ -41,6 +45,11 @@ public class EmisionEndToEndTests
         db.Tenants.Add(tenant);
         await db.SaveChangesAsync();
 
+        var proteccion = new ProteccionDatosAes(new ProteccionDatosOptions(ClaveMaestraPrueba));
+        db.CredencialesSiat.Add(new CredencialSiat(
+            tenant.Id, sucursal.Id, puntoVenta.Id, proteccion.Cifrar("token-delegado-prueba")));
+        await db.SaveChangesAsync();
+
         return (tenant.Id, sucursal.Id, puntoVenta.Id);
     }
 
@@ -48,8 +57,12 @@ public class EmisionEndToEndTests
     {
         var facturas = new EfFacturaRepository(db);
         var tenants = new EfTenantRepository(db);
+        var credenciales = new CredencialesService(
+            new EfCredencialSiatRepository(db),
+            new CredencialesClienteFake(),
+            new ProteccionDatosAes(new ProteccionDatosOptions(ClaveMaestraPrueba)));
         var proveedor = new SiatFakeAdapter(
-            tenants, Options.Create(new SiatOptions()), Options.Create(new SiatFakeAdapterOptions()));
+            tenants, credenciales, Options.Create(new SiatOptions()), Options.Create(new SiatFakeAdapterOptions()));
         var webhook = new NotificadorWebhookLog(NullLogger<NotificadorWebhookLog>.Instance);
         var procesarEmision = new ProcesarEmisionHandler(facturas, tenants, proveedor, webhook);
         var encolador = new EncoladorEmisionInmediato(procesarEmision);

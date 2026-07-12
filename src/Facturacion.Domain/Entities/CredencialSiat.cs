@@ -45,4 +45,10 @@ public class CredencialSiat : Entity
     {
         Cufd = cufd; CufdCodigoControl = codigoControl; CufdVence = vence; MarcarActualizado();
     }
+
+    /// <summary>Rotación del token delegado (p.ej. reemisión desde el portal del SIN).</summary>
+    public void ActualizarTokenDelegado(string tokenDelegadoCifrado)
+    {
+        TokenDelegadoCifrado = tokenDelegadoCifrado; MarcarActualizado();
+    }
 }

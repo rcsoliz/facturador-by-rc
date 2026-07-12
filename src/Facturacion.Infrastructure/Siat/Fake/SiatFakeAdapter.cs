@@ -23,21 +23,17 @@ public class SiatFakeAdapter : IProveedorFiscal
     private const int TipoEmisionOnline = 1;
     private const int CodigoDocumentoFiscalFactura = 1;
 
-    // CUFD/código de control fijos: CredencialesService (CUIS/CUFD) todavía no
-    // existe (roadmap v1, pendiente). Cuando exista, este adaptador seguirá siendo
-    // fake pero podría consumirlo igual que el real — no es una razón para bloquear
-    // esto hasta entonces.
-    private const string CufdFake = "CUFD-FAKE-PENDIENTE-CREDENCIALES-SERVICE";
-    private const string CodigoControlCufdFake = "000000000000000";
-
     private readonly ITenantRepository _tenants;
+    private readonly CredencialesService _credenciales;
     private readonly SiatOptions _siatOptions;
     private readonly SiatFakeAdapterOptions _fakeOptions;
 
     public SiatFakeAdapter(
-        ITenantRepository tenants, IOptions<SiatOptions> siatOptions, IOptions<SiatFakeAdapterOptions> fakeOptions)
+        ITenantRepository tenants, CredencialesService credenciales,
+        IOptions<SiatOptions> siatOptions, IOptions<SiatFakeAdapterOptions> fakeOptions)
     {
         _tenants = tenants;
+        _credenciales = credenciales;
         _siatOptions = siatOptions.Value;
         _fakeOptions = fakeOptions.Value;
     }
@@ -51,6 +47,10 @@ public class SiatFakeAdapter : IProveedorFiscal
                 $"Sucursal {factura.SucursalId} no encontrada para el tenant {factura.TenantId}.");
         var puntoVenta = sucursal.PuntosVenta.SingleOrDefault(p => p.Id == factura.PuntoVentaId);
 
+        var (cufd, codigoControlCufd) = await _credenciales.ObtenerCufdVigenteAsync(
+            factura.TenantId, factura.SucursalId, factura.PuntoVentaId,
+            tenant.Nit.Valor, sucursal.CodigoSiat, puntoVenta?.CodigoSiat, ct);
+
         var cufDatos = new CufDatos(
             Nit: tenant.Nit.Valor,
             FechaHoraEmision: factura.FechaEmision,
@@ -61,11 +61,11 @@ public class SiatFakeAdapter : IProveedorFiscal
             CodigoDocumentoSector: factura.CodigoDocumentoSector,
             NumeroFactura: factura.NumeroFactura,
             PuntoVenta: puntoVenta?.CodigoSiat ?? 0,
-            CodigoControlCufd: CodigoControlCufdFake);
+            CodigoControlCufd: codigoControlCufd);
         var cufValor = CufCalculator.Calcular(cufDatos);
 
         var datosXml = FacturaXmlDatosFactory.Crear(
-            factura, tenant, sucursal, puntoVenta, cufValor, CufdFake, _siatOptions);
+            factura, tenant, sucursal, puntoVenta, cufValor, cufd, _siatOptions);
         var xml = XmlFacturaBuilder.Construir(datosXml);
 
         var errores = XmlFacturaBuilder.Validar(xml);

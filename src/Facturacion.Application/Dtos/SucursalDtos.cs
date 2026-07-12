@@ -20,3 +20,7 @@ public sealed record PuntoVentaResponse(Guid Id, int CodigoSiat, string Nombre, 
 {
     public static PuntoVentaResponse Desde(PuntoVenta p) => new(p.Id, p.CodigoSiat, p.Nombre, p.TipoPuntoVenta);
 }
+
+/// <param name="TokenDelegado">Token delegado obtenido del portal del SIN, en texto plano (se cifra al persistir).</param>
+/// <param name="PuntoVentaId">Null si el CUIS/CUFD se gestiona a nivel sucursal.</param>
+public sealed record RegistrarCredencialSiatRequest(string TokenDelegado, Guid? PuntoVentaId);

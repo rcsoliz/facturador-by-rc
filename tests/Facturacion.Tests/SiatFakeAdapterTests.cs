@@ -24,8 +24,13 @@ public class SiatFakeAdapterTests
             "Mi razon social", 1, "5115889", null, null, 1, 1, 1, null, detalles);
         factura.AsignarNumero(1);
 
+        var credencial = new CredencialSiat(tenant.Id, sucursal.Id, puntoVenta.Id, "token-plano-fake");
+        var credenciales = new CredencialesService(
+            new CredencialSiatRepositoryFake(credencial), new CredencialesClienteFake(), new ProteccionDatosIdentidadFake());
+
         var adapter = new SiatFakeAdapter(
             new TenantRepositoryFake(tenant),
+            credenciales,
             Options.Create(new SiatOptions()),
             Options.Create(fakeOptions ?? new SiatFakeAdapterOptions()));
 
@@ -97,5 +102,33 @@ public class SiatFakeAdapterTests
         public Task AgregarSucursalAsync(Sucursal sucursal, CancellationToken ct = default) => Task.CompletedTask;
         public Task AgregarPuntoVentaAsync(PuntoVenta puntoVenta, CancellationToken ct = default) => Task.CompletedTask;
         public Task GuardarCambiosAsync(CancellationToken ct = default) => Task.CompletedTask;
+    }
+
+    private sealed class CredencialSiatRepositoryFake : ICredencialSiatRepository
+    {
+        private CredencialSiat? _credencial;
+        public CredencialSiatRepositoryFake(CredencialSiat? credencial = null) => _credencial = credencial;
+
+        public Task<CredencialSiat?> ObtenerAsync(
+            Guid tenantId, Guid sucursalId, Guid? puntoVentaId, CancellationToken ct = default) =>
+            Task.FromResult(_credencial is not null
+                && _credencial.TenantId == tenantId && _credencial.SucursalId == sucursalId
+                && _credencial.PuntoVentaId == puntoVentaId
+                ? _credencial
+                : null);
+
+        public Task AgregarAsync(CredencialSiat credencial, CancellationToken ct = default)
+        {
+            _credencial = credencial;
+            return Task.CompletedTask;
+        }
+
+        public Task GuardarCambiosAsync(CancellationToken ct = default) => Task.CompletedTask;
+    }
+
+    private sealed class ProteccionDatosIdentidadFake : IProteccionDatos
+    {
+        public string Cifrar(string textoPlano) => textoPlano;
+        public string Descifrar(string textoCifrado) => textoCifrado;
     }
 }

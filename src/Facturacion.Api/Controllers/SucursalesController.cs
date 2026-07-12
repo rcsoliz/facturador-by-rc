@@ -1,6 +1,7 @@
 using Facturacion.Api.Autenticacion;
 using Facturacion.Application.Commands.AgregarPuntoVenta;
 using Facturacion.Application.Commands.AgregarSucursal;
+using Facturacion.Application.Commands.RegistrarCredencialSiat;
 using Facturacion.Application.Dtos;
 using Facturacion.Domain.Common;
 using Microsoft.AspNetCore.Mvc;
@@ -58,5 +59,23 @@ public class SucursalesController : ControllerBase
     {
         var respuesta = await handler.HandleAsync(_tenant.TenantId, sucursalId, request, ct);
         return respuesta is null ? NotFound() : StatusCode(StatusCodes.Status201Created, respuesta);
+    }
+
+    /// <summary>
+    /// Registra (o rota) el token delegado que el SIN entregó para una sucursal
+    /// o punto de venta del tenant autenticado — prerequisito para que el
+    /// servicio pueda obtener/renovar CUIS y CUFD al emitir facturas.
+    /// </summary>
+    [HttpPost("{sucursalId:guid}/credencial-siat")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RegistrarCredencialSiat(
+        Guid sucursalId,
+        [FromBody] RegistrarCredencialSiatRequest request,
+        [FromServices] RegistrarCredencialSiatHandler handler,
+        CancellationToken ct)
+    {
+        var registrado = await handler.HandleAsync(_tenant.TenantId, sucursalId, request, ct);
+        return registrado ? NoContent() : NotFound();
     }
 }

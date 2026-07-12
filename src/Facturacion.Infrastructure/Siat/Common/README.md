@@ -35,6 +35,22 @@
       entre `Siat/Fake/SiatFakeAdapter` (ya lo usa) y el futuro
       `SiatComputarizadaAdapter`, para no duplicar este mapeo.
 
+- [x] `CredencialesService.cs` + `ISinCredencialesClient.cs` — obtención/renovación
+      bajo demanda de CUIS (~1 año) y CUFD (24h) por sucursal/punto de venta,
+      contra la entidad `CredencialSiat` (persistida vía `ICredencialSiatRepository`).
+      Prioriza la credencial del punto de venta puntual y cae a la de sucursal
+      (`PuntoVentaId` null) si no existe una específica — el CUIS/CUFD suele
+      gestionarse a nivel sucursal. El token delegado se descifra (`IProteccionDatos`,
+      ver `Infrastructure/Seguridad/ProteccionDatosAes.cs`, AES-256-GCM, clave
+      maestra por variable de entorno) antes de usarse; nunca se persiste en
+      texto plano. `ISinCredencialesClient` es la única pieza que hablará SOAP
+      con el SIN — hoy solo tiene la implementación fake
+      (`Siat/Fake/CredencialesClienteFake.cs`), ver `Siat/Fake/README.md`.
+      Registro/rotación del token delegado: `RegistrarTokenDelegadoAsync`,
+      expuesto a Application vía el puerto `IGestorCredencialesSiat` (Domain) —
+      endpoint `POST /api/v1/sucursales/{id}/credencial-siat`. Ver
+      `CredencialesServiceTests` y `ProteccionDatosAesTests`.
+
 Ver también `Siat/Fake/README.md`: `SiatFakeAdapter`, la implementación de
 `IProveedorFiscal` para desarrollo local (sin el SIN) que ya ejercita todo lo de
 arriba end-to-end — ver `SiatFakeAdapterTests` y `EmisionEndToEndTests`.
@@ -43,6 +59,9 @@ Pendientes (TODO claude-code):
 
 - `SoapClients/` — clientes generados con dotnet-svcutil desde los WSDL del SIN:
   sincronización de catálogos, códigos (CUIS/CUFD), recepción de facturas,
-  operaciones (eventos significativos, puntos de venta)
-- `CredencialesService.cs` — obtención/renovación de CUIS (anual) y CUFD (24h)
+  operaciones (eventos significativos, puntos de venta). Cuando existan, solo
+  hay que reemplazar el registro DI de `ISinCredencialesClient` (hoy
+  `CredencialesClienteFake`) por el cliente real — `CredencialesService` no cambia.
 - `CatalogosService.cs` — sincronización diaria de paramétricas
+- Renovación programada de CUFD (job en Workers, antes de que venza) — hoy
+  `CredencialesService` renueva bajo demanda (lazy) en cada emisión.
