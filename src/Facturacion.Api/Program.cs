@@ -74,6 +74,7 @@ builder.Services.AddDbContext<FacturacionDbContext>(options => options.UseNpgsql
 builder.Services.AddScoped<IFacturaRepository, EfFacturaRepository>();
 builder.Services.AddScoped<ITenantRepository, EfTenantRepository>();
 builder.Services.AddScoped<ICredencialSiatRepository, EfCredencialSiatRepository>();
+builder.Services.AddScoped<ICatalogoRepository, EfCatalogoRepository>();
 
 // ── Seguridad (cifrado en reposo) ───────────────────────────────────────────
 var claveMaestra =
@@ -94,6 +95,8 @@ builder.Services.AddScoped<IEncoladorEmision, EncoladorEmisionInmediato>();
 builder.Services.AddScoped<ISinCredencialesClient, CredencialesClienteFake>();
 builder.Services.AddScoped<CredencialesService>();
 builder.Services.AddScoped<IGestorCredencialesSiat>(sp => sp.GetRequiredService<CredencialesService>());
+builder.Services.AddScoped<ISinCatalogosClient, CatalogosClienteFake>();
+builder.Services.AddScoped<CatalogosService>();
 builder.Services.AddScoped<IProveedorFiscal, SiatFakeAdapter>();
 builder.Services.AddScoped<INotificadorWebhook, NotificadorWebhookLog>();
 builder.Services.Configure<SiatOptions>(builder.Configuration.GetSection(SiatOptions.SeccionConfiguracion));

@@ -51,6 +51,23 @@
       endpoint `POST /api/v1/sucursales/{id}/credencial-siat`. Ver
       `CredencialesServiceTests` y `ProteccionDatosAesTests`.
 
+- [x] `CatalogosService.cs` + `ISinCatalogosClient.cs` — sincronización de
+      catálogos/paramétricas del SIN (hoy: productos y servicios, actividades
+      económicas — `TipoCatalogo`, ampliable a países/motivos de
+      anulación/eventos significativos). `ReemplazarAsync` (`ICatalogoRepository`)
+      hace un reemplazo atómico por tipo (delete + insert en dos `SaveChanges`
+      separados, no uno solo — ver comentario en `EfCatalogoRepository`: evita
+      un choque contra el índice único `(Tipo, Codigo)` si EF llegara a
+      ordenar el INSERT antes que el DELETE del mismo código dentro de un
+      mismo batch). Los catálogos son globales, no por tenant. Se invoca bajo
+      demanda hoy (sin job programado todavía, ver Pendientes). Única
+      implementación de `ISinCatalogosClient`: `Siat/Fake/CatalogosClienteFake.cs`.
+      `ExisteYActivoAsync` queda listo para cuando se decida validar
+      `Sucursal.ActividadEconomica` / `DetalleFactura.CodigoProductoSin`
+      contra el catálogo sincronizado (hoy pasan sin validar, ver
+      `CatalogosServiceTests`). No expone puerto Domain todavía — no hay
+      ningún caller en Application/Workers aún (llegará con el job Hangfire).
+
 Ver también `Siat/Fake/README.md`: `SiatFakeAdapter`, la implementación de
 `IProveedorFiscal` para desarrollo local (sin el SIN) que ya ejercita todo lo de
 arriba end-to-end — ver `SiatFakeAdapterTests` y `EmisionEndToEndTests`.
@@ -59,9 +76,15 @@ Pendientes (TODO claude-code):
 
 - `SoapClients/` — clientes generados con dotnet-svcutil desde los WSDL del SIN:
   sincronización de catálogos, códigos (CUIS/CUFD), recepción de facturas,
-  operaciones (eventos significativos, puntos de venta). Cuando existan, solo
-  hay que reemplazar el registro DI de `ISinCredencialesClient` (hoy
-  `CredencialesClienteFake`) por el cliente real — `CredencialesService` no cambia.
-- `CatalogosService.cs` — sincronización diaria de paramétricas
-- Renovación programada de CUFD (job en Workers, antes de que venza) — hoy
+  operaciones (eventos significativos, puntos de venta). **Pospuesto
+  explícitamente por el usuario hasta tener acceso real al SIN** (2026-07-12):
+  se investigó que el WSDL real solo se sirve en vivo desde el servidor
+  piloto (`pilotosiatservicios.impuestos.gob.bo`), no hay un `.wsdl` estático
+  descargable en la documentación pública — así que no se puede generar con
+  dotnet-svcutil sin violar la restricción "SIN ACCESO AL AMBIENTE PILOTO DEL
+  SIN" de CLAUDE.md. Cuando existan, solo hay que reemplazar el registro DI de
+  `ISinCredencialesClient`/`ISinCatalogosClient` (hoy los fakes) por el
+  cliente real — `CredencialesService`/`CatalogosService` no cambian.
+- Job Hangfire diario que invoque `CatalogosService.SincronizarAsync` +
+  renovación programada de CUFD (antes de que venza) — hoy
   `CredencialesService` renueva bajo demanda (lazy) en cada emisión.

@@ -14,6 +14,7 @@ public class FacturacionDbContext : DbContext
     public DbSet<PuntoVenta> PuntosVenta => Set<PuntoVenta>();
     public DbSet<CredencialSiat> CredencialesSiat => Set<CredencialSiat>();
     public DbSet<PuntoVentaCorrelativo> PuntoVentaCorrelativos => Set<PuntoVentaCorrelativo>();
+    public DbSet<ItemCatalogo> Catalogos => Set<ItemCatalogo>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
